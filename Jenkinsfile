@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "your-dockerhub-username/myapp"
+        DOCKER_IMAGE = "sandhirishan/myapp"  // Your Docker Hub username
         KUBE_NAMESPACE = "default"
     }
 
@@ -10,7 +10,7 @@ pipeline {
 
         stage('Checkout Source') {
             steps {
-                git 'https://github.com/<your-username>/blue-green-deployment.git'
+                git 'https://github.com/Sandhirishan/blue-green-deployment.git'
             }
         }
 
@@ -28,7 +28,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                    kubectl apply -f k8s/green-deployment.yaml
+                    kubectl apply -f deployment/green-deployment.yaml
                     kubectl set image deployment/green-deployment myapp=$DOCKER_IMAGE:green-${env.BUILD_ID} --namespace=$KUBE_NAMESPACE
                     """
                 }
@@ -38,21 +38,21 @@ pipeline {
         stage('Test Green') {
             steps {
                 echo 'Testing the green environment...'
-                // You can add health check or test scripts here
+                // Add health check or test scripts if needed
             }
         }
 
         stage('Switch Traffic to Green') {
             steps {
                 script {
-                    sh "kubectl patch service myapp-service -p '{\"spec\":{\"selector\":{\"app\":\"myapp\",\"version\":\"green\"}}}'"
+                    sh "kubectl patch service myapp-service -p '{\"spec\":{\"selector\":{\"app\":\"myapp\",\"version\":\"green\"}}}' --namespace=$KUBE_NAMESPACE"
                 }
             }
         }
 
         stage('Clean Up Blue') {
             steps {
-                sh "kubectl delete deployment blue-deployment || true"
+                sh "kubectl delete deployment blue-deployment --namespace=$KUBE_NAMESPACE || true"
             }
         }
     }
