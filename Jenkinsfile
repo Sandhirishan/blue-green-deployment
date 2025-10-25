@@ -8,12 +8,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout Source') {
-            steps {
-                git 'https://github.com/Sandhirishan/blue-green-deployment.git'
-            }
-        }
-
         stage('Build & Push Image') {
             steps {
                 script {
